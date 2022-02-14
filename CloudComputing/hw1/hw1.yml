@@ -1,1 +1,39 @@
-.
+---
+- hosts: hw1
+  become: yes
+  tasks:
+    - name: update
+      apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+
+    - name: install nginx
+      apt:
+        name: nginx
+        state: latest
+
+    - name: Allow all access to tcp port 80
+      ufw:
+          rule: allow
+          port: '80'
+          proto: tcp
+
+    - name: make dir
+      file:
+        owner: root
+        group: root
+        path: /var/git
+        state: directory
+        mode: 0755
+
+    - name: clone branch
+      ansible.builtin.git:
+          repo: https://github.com/doublejone831/hw1.git
+          
+    - name: copy
+      ansible.builtin.copy:
+          src: /var/git/
+          dest: /var/www/html
+          remote_src: yes
+
+  handlers:
+    - name: restart nginx
+      service: name=nginx state=restarted
